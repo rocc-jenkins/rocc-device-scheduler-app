@@ -1,0 +1,49 @@
+version: '3.6'
+services:
+  rocc-self-service-report-app:
+    image: docker.na1.hsdp.io/client-radiologysolutions-performancebridge_rocc-demo/philips/rocc-self-service-report-master
+    container_name: rocc-self-service-report-app
+    ports:
+    - "443:443"
+    environment:
+      INSIGHTS_KEY: c4009677-6574-43a9-96d5-bb03411aa661
+      LOG_INGESTER_URL: "https://logingestor2-client-test.us-east.philips-healthsuite.com"
+      HTTP_PROXY_HOST:
+      HTTP_PROXY_PORT:
+      PING_URL: /ping
+      LOG_LEVEL: INFO
+      PWD_POLICY_TEXT: "Note: Password must be between 8 and 16 characters long and must contain atleast one uppercase, one lowercase, one numeric and one special character - ! @ # . : _ ? $$ {. Password must not be identical to the previous five (5) passwords."
+      GRAPHQL_EP: /v1/graphql
+      GRAPHQL_WS_PORT: 4443
+      DEVICE_RECOVERY_TIME_IN_MINS: 2
+      ENABLE_DEVICE_RESET: "true"
+      DANGLING_CONSOLE_CONNECTIONS_CLEANUP_INTERVAL: 5
+      ROCC_DEV: "true"
+      QUERY_LIMIT_ADMIN_USERS: 500
+      QUERY_LIMIT_CONTACTS: 300
+      # To enable local execution
+      DEPLOYMENT: onprem # onprem OR cloud
+      SENTINEL_NAME: mysentinel
+      SENTINEL_PORT: 26379
+      # URL's affected by PROXY
+      SESSION_IDLE_TIMEOUT: 10
+      SESSION_IDLE_TIMEOUT_DEVICE: 120
+      CUSTOMER_ANALYTICS_LOG_CONSENT: "true"
+      DESKTOP_MAX_VIDEO_BITRATE: 2000000
+      DESKTOP_MAX_SUBSCRIPTION_BITRATE: 8000000
+      DEVICE_MAX_VIDEO_BITRATE: 2000000
+      DEVICE_MAX_SUBSCRIPTION_BITRATE: 4000000
+      ADMIN_MANUAL_PATH: https://rocc.file.core.windows.net/rocc/Manuals/Radiology%20Operations%20Command%20Center%20Admin%20Manual%20V1.0.pdf?st=2020-06-15T06%3A11%3A41Z&se=2025-06-16T06%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=3Q6jNpnyzkT2zoJA%2BvjwPouskXE1MFJz2njuoIaR4bw%3D
+      USER_MANUAL_PATH: https://rocc.file.core.windows.net/rocc/Manuals/Radiology%20Operations%20Command%20Center-User%20Manual%20V1.0.pdf?st=2020-06-15T06%3A13%3A17Z&se=2020-06-16T06%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=ZsLcBN%2FaBHj32zho8bnwYiRFCJSJiS0PYD1WxMAH73g%3D
+      ROCC_HELPLINE: +918789666081
+      # Default customer: Platinum Health Systems, Following URLs will be considered, if they do not match default URLs [Refer constants - Default URLs]
+      CONSOLE_SERVICES_URL: https://INGBTCPIC6VL128.code1.emi.philips.com:8498
+      GRAPHQL_API_HSDP_URI: https://rocc-nginx-dev.cloud.pcftest.com
+      GRAPHQL_API_HSDP_WS_URI: wss://rocc-nginx-dev.cloud.pcftest.com
+      COMMUNICATION_SERVER_URL: https://rocc-nginx-dev.cloud.pcftest.com
+      IAM_URL: https://rocc-nginx-dev.cloud.pcftest.com
+      MANAGEMENT_SERVICE_URL: https://rocc-nginx-dev.cloud.pcftest.com
+      RBAC_SERVICE_URL: https://rocc-nginx-dev.cloud.pcftest.com
+      CONSOLE_DISCONNECT_DELAY: 3000
+      DEMO_ENV: "false"
+    restart: always

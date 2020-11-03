@@ -1,0 +1,28 @@
+---
+applications:
+  - name: rocc-{target_env}
+    env:      
+      eureka.client.service-url.defaultZone: ${vcap.services.rocc-eureka-service-{target_env}.credentials.uri:http://localhost:8761/eureka}
+      LOG_INGESTER_URL: "{HSDP_LOG_INGESTER_URL}"
+      PWD_POLICY_TEXT: "Note: Password must be between 8 and 16 characters long and must contain atleast one uppercase, one lowercase, one numeric and one special character - ! @ # . : _ ? $ {. Password must not be identical to the previous five (5) passwords."
+      LOG_LEVEL: INFO
+      PING_URL: /ping
+      GRAPHQL_EP: /v1/graphql
+      GRAPHQL_WS_PORT: 4443
+      DEVICE_RECOVERY_TIME_IN_MINS: 2
+      ENABLE_DEVICE_RESET: true
+      DANGLING_CONSOLE_CONNECTIONS_CLEANUP_INTERVAL: 5
+      ROCC_DEV: {DEV_FLAG}
+      QUERY_LIMIT_ADMIN_USERS: 500
+      QUERY_LIMIT_CONTACTS: 300
+      ADMIN_MANUAL_PATH: https://rocc.file.core.windows.net/rocc/Manuals/Radiology%20Operations%20Command%20Center%20Admin%20Manual%20V1.0.pdf?st=2020-06-15T06%3A11%3A41Z&se=2025-06-16T06%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=3Q6jNpnyzkT2zoJA%2BvjwPouskXE1MFJz2njuoIaR4bw%3D
+      USER_MANUAL_PATH: https://rocc.file.core.windows.net/rocc/Manuals/Radiology%20Operations%20Command%20Center%20User%20Manual%20V1.0.pdf?st=2020-06-16T06%3A29%3A25Z&se=2025-06-17T06%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=CtDY0mKiBGxmOC3fKK3%2BKpbEzuhdtlZ0iujYtPbwUeo%3D
+      APPINSIGHTS_INSTRUMENTATIONKEY: 5dcdaaf8-b4f6-4bb0-9a53-c6efd3410a3e
+      COMMUNICATION_SERVER_URL: http://rocc-communication-{target_env}.apps.internal:8080
+      IAM_URL: http://rocc-iam-{target_env}.apps.internal:8080
+      MANAGEMENT_SERVICE_URL: http://rocc-management-{target_env}.apps.internal:8080
+      RBAC_SERVICE_URL: http://rocc-rbac-{target_env}.apps.internal:8080
+    routes:
+      - route: rocc-{target_env}.apps.internal  
+    services:
+      - rocc-redis-{target_env}

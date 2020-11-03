@@ -1,0 +1,199 @@
+pipeline
+{
+    environment 
+	{
+        https_proxy='http://apac.zscaler.philips.com:9480'
+        http_proxy='http://apac.zscaler.philips.com:9480'
+        git_token = credentials('rocctoken')
+        functionalaccountpassword = credentials('functionalaccountpassword')
+        CF_USERNAME = credentials('HSDPCREDS')
+        docker_registry='docker.na1.hsdp.io'
+        CF_API = credentials('ROCC_CF_API')
+        CF_ORG = credentials('ROCC_CF_ORG')
+        SONAR_CREDS = credentials('sonar_creds')
+	docker_repo='client-radiologysolutions-performancebridge_rocc-dev'
+	reponame = 'rocc-device-scheduler-app'
+
+    }
+    
+	parameters
+	{
+	  string(name: 'buildversion', defaultValue: '', description: '')
+          choice(name: 'target_env', choices: ['dev', 'qa', 'nfr', 'uat', 'pre_prod', 'reldev', 'relqa', 'featurebranch', 'sal', 'nfrdev', 'uatenv'], description: 'Pick something')	
+	  string(name: 'HSDP_LOG_INGESTER_URL', defaultValue: 'https://logingestor2-client-test.us-east.philips-healthsuite.com', description: '')
+	  choice(name: 'DEV_FLAG', choices: ['true', 'false'], description: 'Pick something')	
+	  
+	}
+    options 
+	{
+        disableConcurrentBuilds()
+        timestamps()
+        }
+	  
+    agent { label '130.147.168.250' }
+    
+    stages 
+    {
+        stage('Git-Clone') 
+	{
+            steps 
+            {
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'WipeWorkspace']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'gitcredswithPAT', url: 'https://github.com/analytical-informatics/rocc-device-scheduler-app.git']]])
+	    }
+        }
+        stage('Build')
+        {
+            steps 
+            {
+                        sh '''#!/bin/bash
+			cd ${WORKSPACE}/build
+			source /etc/environment
+                        if [ -z "$buildversion" ]
+                        then
+                          echo "Building Master code"
+	                  bash build-rocc-app.sh
+                        else
+	                    if docker pull $docker_registry/$docker_repo/philips/rocc:$buildversion > /dev/null;
+	                     then
+	                       echo "Docker image already exist. So not building"
+	                    else
+	                       echo "code is checking out to $buildversion"
+	                       git checkout $buildversion
+		               bash build-rocc-app.sh
+                             fi
+                        fi
+                        '''
+            }	
+        }
+       stage('Checkout-CIScripts')
+        {
+            steps 
+            {
+                sh 'mkdir CI_Scripts'
+		sh 'mkdir automation'
+		checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'automation']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'gitcredswithPAT', url: 'https://github.com/analytical-informatics/rocc-test-automation.git']]])
+    	        checkout([$class: 'GitSCM', branches: [[name: '*/pipeline']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'CI_Scripts']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'gitcredswithPAT', url: 'https://github.com/analytical-informatics/devops-ci-scripts.git']]])
+            }
+        }
+	stage('Run-Lint')
+        { when { expression { params.buildversion == '' } }
+            steps 
+            {
+                         sh '''#!/bin/bash
+			 set -e
+			 set -x
+		         source /etc/environment
+                         cd ${WORKSPACE}/client;
+                         npm run lint 
+			  '''
+            } 
+        }
+		
+      stage('Run-Test-cases')
+        { when { expression { params.buildversion == '' } }
+            steps 
+            {
+                 sh '''#!/bin/bash
+		 set -e
+		 set -x
+		 cd ${WORKSPACE}/client;
+	         source /etc/environment
+                 npm run test:coverage
+		 '''
+            } 
+        }      
+	stage('Sonar-Scan')
+        {  when { expression { params.buildversion == '' } }
+            steps 
+            {
+                sh '''
+		cd ${WORKSPACE}
+		export PATH=$PATH:/home/jenkins/node-v10.15.2-linux-x64/bin
+                /opt/sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner -Dsonar.projectKey=ROCC -Dsonar.projectName=ROCC -Dsonar.sources=. -Dsonar.profile=ROCC -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions=automation/**,**/node_modules/**,**/*.spec.ts,**/alltypes.d.ts,**/config/**,**/build/**,**/scripts/**,**/config/**,**/docker/**,**/server/dist/**,**/coverage/** -Dsonar.test.inclusions=**/*.test.tsx -Dsonar.ts.tslintconfigpath=tslint.json -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info -Dsonar.typescript.exclusions=**/node_modules/**,**/alltypes.d.ts,**/config/**,**/build/**,**/scripts/**,**/config/** -Dsonar.login=$SONAR_CREDS_USR -Dsonar.password=$SONAR_CREDS_PSW
+                '''
+            }
+        }
+	stage('Sonar-Gate')
+        {   when { expression { params.buildversion == '' } }
+            steps 
+            {
+                sh '''
+                cd ${WORKSPACE}
+                bash CI_Scripts/sonar-check-nightly.sh ROCC
+                '''
+            }
+        }
+	stage('Fortify-Scan') 
+        {      when { expression { params.buildversion == '' } }
+            steps 
+            {
+                sh '''
+                cd ${WORKSPACE}
+                bash CI_Scripts/fortifyscan_nightly.sh ROCC
+                '''
+            }
+        }
+        stage('Fortify-Gate')
+        {   when { expression { params.buildversion == '' } }
+            steps 
+            {
+                sh '''
+                cd ${WORKSPACE}
+                bash CI_Scripts/fortifygatescript_nightly.sh $functionalaccountpassword 12373
+                '''
+            }
+        }
+	stage('Build-Docker')
+        {
+            steps
+            {
+                sh '''#!/bin/bash
+                cd ${WORKSPACE}/docker
+                if [ -z "$buildversion" ]
+                then
+	          bash ../CI_Scripts/dockerbuild_nightly.sh rocc $target_env-latest;
+               else
+	            if  docker pull $docker_registry/$docker_repo/philips/rocc:$buildversion > /dev/null
+	            then
+	              echo "Docker image already exist. So not building"
+                    else
+    	              bash ../CI_Scripts/dockerbuild_nightly.sh rocc $buildversion
+                    fi
+                fi
+                '''
+            }
+        }
+	stage('Deploy-Service-On-HSDP')
+        {
+            steps
+            {
+                sh '''
+                cd ${WORKSPACE}
+                export CF_DOCKER_PASSWORD=$CF_USERNAME_PSW
+                sed -i s/{target_env}/$target_env/g manifest_cf.yml
+                sed -i "s,{HSDP_LOG_INGESTER_URL},$HSDP_LOG_INGESTER_URL,g" manifest_cf.yml
+		sed -i "s,{DEV_FLAG},$DEV_FLAG,g" manifest_cf.yml
+		cf login -a $CF_API -u $CF_USERNAME_USR  -p $CF_USERNAME_PSW -o $CF_ORG -s rocc-$target_env
+                if [ -z "$buildversion" ]; then
+    		  cf push rocc-$target_env --docker-image $docker_registry/$docker_repo/philips/rocc:$target_env-latest -f manifest_cf.yml --no-start --docker-username mkasa
+		else
+	    	  cf push rocc-$target_env --docker-image $docker_registry/$docker_repo/philips/rocc:$buildversion -f manifest_cf.yml --no-start --docker-username mkasa
+		fi
+                cf start rocc-$target_env
+                cf restage rocc-$target_env
+		'''
+            }
+        }
+        stage("sanity") {
+          steps
+            {
+               build job: 'devauto/sanity_suite', parameters: [string(name: 'build_version', value: ""), string(name: 'target_env', value: 'Dev')], wait: true, propagate: true
+            }
+        }
+   }
+   post {
+        failure {
+         	emailext(mimeType: 'text/html', body: "Detailed log can be found at $BUILD_URL", subject: " $reponame MASTER BUILD FAILURE", to: '$DEFAULT_RECIPIENTS')
+              }
+  }
+}

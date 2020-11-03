@@ -1,0 +1,19 @@
+#This is manifest yml file for IAM  docker engine to deploy in CF
+---
+applications:
+# App name 
+- name: rocc-self-learning-app
+#  path: /Users/philips/Documents/Acquisation_service/hsdp-iam-auth/iam/target/iam-0.0.1-SNAPSHOT.jar
+# App memory RAM ENGINEERING CHANGE ONLY
+  memory: 1G
+# Number of instances to run
+  instances: 1
+# App docker image
+  docker:
+    image: docker.na1.hsdp.io/client-radiologysolutions-performancebridge_rocc-dev/philips/rocc-self-learning-app:1.0.0
+    username: ssoni
+    
+  health-check-type: process
+    
+# CF Environment specific keys and its values( This will vary per environment)
+
