@@ -2,7 +2,7 @@
 ---
 applications:
 # App name 
-- name: rocc-self-learning-app
+- name: rocc-device-scheduler-app
 #  path: /Users/philips/Documents/Acquisation_service/hsdp-iam-auth/iam/target/iam-0.0.1-SNAPSHOT.jar
 # App memory RAM ENGINEERING CHANGE ONLY
   memory: 1G
@@ -10,7 +10,7 @@ applications:
   instances: 1
 # App docker image
   docker:
-    image: docker.na1.hsdp.io/client-radiologysolutions-performancebridge_rocc-dev/philips/rocc-self-learning-app:1.0.0
+    image: docker.na1.hsdp.io/client-radiologysolutions-performancebridge_rocc-dev/philips/rocc-device-scheduler-app:1.0.0
     username: ssoni
     
   health-check-type: process

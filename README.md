@@ -1,8 +1,5 @@
-# rocc-micro-frontend-app
 
-# Micro Frontend Typescript App Template
-
-This app is a basic app/remote application template with TypeScript.
+This app is to view the Appointments 
 
 # Configure App Dependencies
 
@@ -22,7 +19,5 @@ Run `yarn`
 
 # Running App
 
-Run `yarn start`. This will build and serve `rocc-micro-frontend-app` on ports 3001.
-
-Add more MFE apps to git repos by executing this template.  Then in the Host repo, set another git repo pointer in the Host to build and serve this and other MFE apps.
+Run `yarn start`. This will build and serve the app at  http://localhost:3001
 

@@ -20,14 +20,14 @@
   "scripts": {
     "start": "webpack-cli serve",
     "build": "webpack --mode production",
-    "serve": "serve dist -p 3001",
+    "serve": "serve dist -p 6001",
     "clean": "rm -rf dist"
   },
   "dependencies": {
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "semantic-ui-react": "^2.0.0",
-    "@dls/semantic-ui-foundation": "^1.0.0-tc2",
-    "@dls/semantic-react-components": "^1.0.0"
+    "@dls/semantic-react-components": "^0.0.1-tc3",
+    "@dls/semantic-ui-foundation": "^0.0.1-tc3"
   }
 }

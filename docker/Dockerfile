@@ -1,7 +1,7 @@
 FROM node:10.15.3-alpine 
 MAINTAINER "Philips Healthcare"
 
-ENV WORKDIR /rocc-self-learning-app
+ENV WORKDIR /rocc-device-scheduler-app
 
 RUN mkdir -pv $WORKDIR
 
@@ -17,4 +17,4 @@ WORKDIR $WORKDIR
 
 EXPOSE 8080
 
-CMD ["bash","/rocc-self-learning-app/client-start.sh"]
+CMD ["bash","/rocc-device-scheduler-app/client-start.sh"]

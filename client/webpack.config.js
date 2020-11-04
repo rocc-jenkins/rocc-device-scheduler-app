@@ -8,7 +8,7 @@ module.exports = {
   mode: "development",
   devServer: {
     contentBase: path.join(__dirname, "dist"),
-    port: 3001,
+    port: 6001,
   },
   output: {
     publicPath: "auto",
@@ -37,20 +37,10 @@ module.exports = {
   },
   plugins: [
     // Example Consumer App Components
-    new ModuleFederationPlugin({
-      name: "app1",
-      remotes: {
-        app2: "app2@http://localhost:3002/remoteEntry.js",
-      },
-      shared: ["react", "react-dom"],
-    }),
-
-    // Example App Exposes a Component
     // new ModuleFederationPlugin({
-    //   name: "app2",
-    //   filename: "remoteEntry.js",
-    //   exposes: {
-    //     "./Button": "./src/Button",
+    //   name: "app1",
+    //   remotes: {
+    //     app2: "app2@http://localhost:3002/remoteEntry.js",
     //   },
     //   shared: ["react", "react-dom"],
     // }),
